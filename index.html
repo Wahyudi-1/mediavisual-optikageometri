@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#050510">
     <meta name="description" content="Aplikasi Laboratorium Optika Geometri - Cermin dan Lensa">
     <title>Optic Geometry Lab: Bayangan Virtual & Nyata</title>
@@ -39,6 +39,9 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            /* Mencegah highlight text saat drag di HP */
+            user-select: none; 
+            -webkit-user-select: none;
         }
 
         .container { max-width: 1300px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 20px; }
@@ -53,12 +56,12 @@
             flex-direction: column;
             align-items: center;
         }
-        header h1 { color: var(--neon-cyan); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; text-shadow: 0 0 10px rgba(0,255,255,0.5); }
-        header p { color: var(--text-muted); }
+        header h1 { color: var(--neon-cyan); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; text-shadow: 0 0 10px rgba(0,255,255,0.5); font-size: 1.8rem;}
+        header p { color: var(--text-muted); font-size: 0.95rem; }
 
         /* KONTROL ATAS (TOGGLE & INSTALL) */
         .top-controls {
-            display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-bottom: -5px; z-index: 10;
+            display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-bottom: -5px; z-index: 10; flex-wrap: wrap;
         }
         .control-btn {
             padding: 8px 15px; border-radius: 6px; border: 1px solid var(--neon-cyan);
@@ -70,6 +73,7 @@
         .control-btn:hover { background: var(--neon-cyan); color: #000; }
         .control-btn.primary-btn { border-color: var(--vibrant-pink); color: var(--vibrant-pink); background: rgba(255,0,127,0.1); display: none; }
         .control-btn.primary-btn:hover { background: var(--vibrant-pink); color: #fff; box-shadow: 0 0 15px var(--vibrant-pink); }
+
 
         /* MAIN WORKSPACE */
         .workspace { display: flex; flex-direction: column; gap: 20px; }
@@ -102,8 +106,8 @@
         .control-group { display: flex; flex-direction: column; margin-bottom: 15px; }
         .control-group label { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 5px; color: var(--text-main); }
         
-        input[type=range] { -webkit-appearance: none; width: 100%; background: #223; height: 6px; border-radius: 3px; outline: none; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--neon-cyan); cursor: pointer; box-shadow: 0 0 8px var(--neon-cyan); }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: #223; height: 8px; border-radius: 4px; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--neon-cyan); cursor: pointer; box-shadow: 0 0 8px var(--neon-cyan); }
         
         /* TOGGLE CHECKBOXES SINAR ISTIMEWA */
         .checkbox-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px; margin-bottom: 15px;}
@@ -115,9 +119,7 @@
             appearance: none; width: 16px; height: 16px; border: 1px solid var(--neon-cyan);
             border-radius: 3px; background: #112; cursor: pointer; position: relative;
         }
-        .checkbox-label input[type="checkbox"]:checked {
-            background: var(--neon-cyan);
-        }
+        .checkbox-label input[type="checkbox"]:checked { background: var(--neon-cyan); }
         .checkbox-label input[type="checkbox"]:checked::after {
             content: '✔'; position: absolute; color: #000; font-size: 12px;
             top: -1px; left: 2px; font-weight: bold;
@@ -137,15 +139,16 @@
             width: 100%; height: 550px; background-color: #000; border: 2px solid #224; border-radius: 8px;
             position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.8); overflow: hidden;
             display: flex; flex-direction: column; transition: height 0.3s ease;
+            touch-action: none; /* Mencegah layar scroll saat menarik benda di HP */
         }
-        .canvas-container.mobile-mode { height: 350px; } /* Kanvas lebih pendek di mode mobile */
+        .canvas-container.mobile-mode { height: 350px; }
 
         canvas { width: 100%; height: 100%; cursor: grab; display: block; flex: 1; }
         canvas:active { cursor: grabbing; }
 
         .legend {
-            display: flex; justify-content: center; gap: 20px; padding: 10px; background: #0d0d1a;
-            border-top: 1px solid #224; font-size: 0.85rem; flex-wrap: wrap;
+            display: flex; justify-content: center; gap: 15px; padding: 10px; background: #0d0d1a;
+            border-top: 1px solid #224; font-size: 0.8rem; flex-wrap: wrap;
         }
         .legend span { display: flex; align-items: center; gap: 5px; }
         .box { width: 12px; height: 12px; border-radius: 2px; }
@@ -167,6 +170,7 @@
             .workspace { flex-direction: column; }
             .canvas-container { height: 400px; }
             canvas { height: 100%; }
+            .control-panel { min-width: 100%; }
         }
     </style>
 </head>
@@ -186,20 +190,22 @@
         </header>
 
         <div class="workspace">
-            <!-- CANVAS AREA (DIPINDAHKAN KE ATAS) -->
+            <!-- CANVAS AREA -->
             <div class="canvas-container" id="cvsContainer">
                 <canvas id="opticCanvas"></canvas>
                 <div class="legend">
-                    <span><div class="box" style="background: var(--neon-green);"></div> Cermin / Lensa</span>
-                    <span><div class="box" style="background: var(--text-main);"></div> Benda (Objek)</span>
-                    <span><div class="box" style="background: var(--neon-cyan);"></div> Sinar Datang</span>
-                    <span><div class="box" style="background: var(--neon-yellow);"></div> Sinar Bias/Pantul</span>
-                    <span><div class="box" style="background: var(--vibrant-pink);"></div> Bayangan Akhir</span>
+                    <span><div class="box" style="background: var(--neon-green);"></div> Cermin/Lensa</span>
+                    <span><div class="box" style="background: var(--text-main);"></div> Benda</span>
+                    <span><div class="box" style="background: var(--neon-cyan);"></div> Datang</span>
+                    <span><div class="box" style="background: var(--neon-yellow);"></div> Pantul/Bias</span>
+                    <span><div class="box" style="background: var(--vibrant-pink);"></div> Bayangan</span>
                 </div>
-                <div style="position: absolute; top:10px; left:15px; color:#aaa; font-size:0.8rem; border:1px solid #334; padding:5px; border-radius:4px; background:rgba(0,0,0,0.5);">💡 Drag objek untuk memindahkan</div>
+                <div style="position: absolute; top:10px; left:15px; color:#aaa; font-size:0.85rem; border:1px solid #334; padding:5px 10px; border-radius:4px; background:rgba(0,0,0,0.6);">
+                    👆 <b>Tarik & Geser Benda (Drag & Drop)</b>
+                </div>
             </div>
 
-            <!-- PANEL KONTROL & RUMUS (DIPINDAHKAN KE BAWAH) -->
+            <!-- PANEL KONTROL & RUMUS -->
             <div class="top-row">
                 <div class="panel control-panel">
                     <h2>⚙️ Panel Kontrol Simulasi</h2>
@@ -211,7 +217,7 @@
                         <button class="tab-btn" onclick="setMode('cermin_cembung')" id="btn_ccv">Cermin (-)</button>
                         <button class="tab-btn" onclick="setMode('mikroskop')" id="btn_mikro">Mikroskop</button>
                         <button class="tab-btn" onclick="setMode('teropong_bintang')" id="btn_tb">T. Bintang</button>
-                        <button class="tab-btn" onclick="setMode('teropong_panggung')" id="btn_tp">T. Panggung / Bumi</button>
+                        <button class="tab-btn" onclick="setMode('teropong_panggung')" id="btn_tp">T. Bumi</button>
                     </div>
 
                     <div class="control-group">
@@ -230,8 +236,9 @@
                             <input type="range" id="slider_s" min="1" max="100" step="1" value="30">
                         </div>
                         <div class="control-group">
-                            <label><span>Tinggi Benda (h)</span><span id="val_h">10 cm</span></label>
-                            <input type="range" id="slider_h" min="1" max="30" step="1" value="10">
+                            <!-- Min diubah menjadi -30 agar benda bisa dibuat terbalik dari slider juga -->
+                            <label><span>Tinggi Benda (h)</span><span id="val_h">15 cm</span></label>
+                            <input type="range" id="slider_h" min="-30" max="30" step="1" value="15">
                         </div>
                         <div class="control-group" id="group_f">
                             <label><span>Jarak Fokus Absolut (f)</span><span id="val_f">15 cm</span></label>
@@ -279,7 +286,7 @@
                         <div class="math-row"><span>Persamaan:</span> <span>1/f = 1/s + 1/s'</span></div>
                         <div class="math-row"><span>Jarak Bayangan (s'):</span> <span class="math-val" id="out_s_prime">30.00 cm</span></div>
                         <div class="math-row"><span>Perbesaran (M):</span> <span class="math-val" id="out_M">1.00 x</span></div>
-                        <div class="math-row"><span>Tinggi Bayangan (h'):</span> <span class="math-val" id="out_h_prime">-10.00 cm</span></div>
+                        <div class="math-row"><span>Tinggi Bayangan (h'):</span> <span class="math-val" id="out_h_prime">-15.00 cm</span></div>
                         <div class="math-row"><span>Kekuatan (P = 100/f):</span> <span class="math-val" id="out_P">+6.67 Dioptri</span></div>
                         <div class="status-box" id="out_sifat">Sifat: Nyata, Terbalik, Sama Besar</div>
                     </div>
@@ -348,13 +355,11 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT: LOGIKA OPTIKA GEOMETRI, CANVAS & PWA SINGLE FILE -->
     <script>
         // ========================================================
         // 0. SETUP PROGRESSIVE WEB APP (SINGLE-FILE BLOB INJECTION)
         // ========================================================
         function setupSingleFilePWA() {
-            // A. Injeksi Manifest.json (Cyberpunk icon theme)
             const manifestJSON = {
                 "name": "Optic Geometry Lab",
                 "short_name": "OpticLab",
@@ -375,7 +380,6 @@
             manifestLink.href = URL.createObjectURL(manifestBlob);
             document.head.appendChild(manifestLink);
 
-            // B. Injeksi Service Worker via Blob (Mendukung standar offline)
             if ('serviceWorker' in navigator) {
                 const swCode = `
                     const CACHE_NAME = 'optic-lab-v1';
@@ -383,8 +387,7 @@
 
                     self.addEventListener('install', event => {
                         event.waitUntil(
-                            caches.open(CACHE_NAME)
-                            .then(cache => cache.addAll(urlsToCache))
+                            caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
                         );
                         self.skipWaiting();
                     });
@@ -394,9 +397,7 @@
                             caches.keys().then(cacheNames => {
                                 return Promise.all(
                                     cacheNames.map(cacheName => {
-                                        if (cacheName !== CACHE_NAME) {
-                                            return caches.delete(cacheName);
-                                        }
+                                        if (cacheName !== CACHE_NAME) return caches.delete(cacheName);
                                     })
                                 );
                             })
@@ -406,34 +407,30 @@
 
                     self.addEventListener('fetch', event => {
                         event.respondWith(
-                            caches.match(event.request)
-                            .then(response => response || fetch(event.request))
+                            caches.match(event.request).then(response => response || fetch(event.request))
                         );
                     });
                 `;
                 const swBlob = new Blob([swCode], {type: 'application/javascript'});
                 navigator.serviceWorker.register(URL.createObjectURL(swBlob))
-                    .then(reg => console.log('Single-File Service Worker (PWA) berhasil didaftarkan!'))
+                    .then(reg => console.log('Single-File PWA Service Worker Ready!'))
                     .catch(err => console.log('SW Registration failed:', err));
             }
 
-            // C. Tangkap event instalasi PWA
             let deferredPrompt;
             const installBtn = document.getElementById('btn-install');
             
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 deferredPrompt = e;
-                installBtn.style.display = 'inline-block'; // Munculkan tombol Install
+                installBtn.style.display = 'flex'; 
             });
 
             installBtn.addEventListener('click', async () => {
                 if (deferredPrompt) {
                     deferredPrompt.prompt();
                     const { outcome } = await deferredPrompt.userChoice;
-                    if (outcome === 'accepted') {
-                        installBtn.style.display = 'none'; // Sembunyikan tombol setelah di-install
-                    }
+                    if (outcome === 'accepted') installBtn.style.display = 'none';
                     deferredPrompt = null;
                 }
             });
@@ -452,17 +449,11 @@
             s: 30,  
             h: 15,  
             f: 15,  
-            s_ob: 15,
-            f_ob: 10,
-            f_ok: 20,
-            f_ob_t: 50,  // Teleskop
-            f_ok_t: 10,
-            d_t: 60,
-            showRay1: true,
-            showRay2: true,
-            showRay3: true,
-            baseScale: 6, // Skala proporsional utama
-            scale: 6,     // Skala aktif saat ini
+            s_ob: 15, fob: 10, fok: 20,
+            f_ob_t: 50, f_ok_t: 10, d_t: 60,
+            showRay1: true, showRay2: true, showRay3: true,
+            baseScale: 6,
+            scale: 6,
             cx: 0,   
             cy: 0,   
             isDragging: false
@@ -470,16 +461,13 @@
 
         let isMobileLayout = false;
 
-        // Resize Canvas Internal Logic ensuring strict bounding & Dynamic Scaling
         function resizeCanvas() {
             canvas.width = cvsContainer.clientWidth;
-            canvas.height = cvsContainer.clientHeight - 40; // Kurangi tinggi area legend
+            canvas.height = cvsContainer.clientHeight - 40; 
             state.cx = canvas.width / 2;
             state.cy = canvas.height / 2;
 
-            // Kalkulasi skala otomatis agar animasi mengikuti rasio lebar layar
             if (isMobileLayout || window.innerWidth <= 768) {
-                // Di layar kecil, skala dikecilkan agar benda tidak keluar garis
                 state.baseScale = Math.min(6, Math.max(3, canvas.width / 160));
             } else {
                 state.baseScale = 6;
@@ -488,7 +476,6 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
-        // Fitur Toggle Mobile/Desktop Mode
         function toggleLayout() {
             isMobileLayout = !isMobileLayout;
             const topRow = document.querySelector('.top-row');
@@ -504,12 +491,9 @@
                 cvsCont.classList.remove('mobile-mode');
                 toggleBtn.innerHTML = '📱 Tampilan Mobile';
             }
-            
-            // Panggil ulang render ukuran agar elemen di dalam SVG / Canvas menyesuaikan skala
             resizeCanvas(); 
         }
 
-        // Referensi UI Sliders & Values
         const sliders = {
             s: document.getElementById('slider_s'), h: document.getElementById('slider_h'), f: document.getElementById('slider_f'),
             sob: document.getElementById('slider_sob'), fob: document.getElementById('slider_fob'), fok: document.getElementById('slider_fok'),
@@ -526,18 +510,14 @@
         // ========================================================
         function drawGrid() {
             ctx.clearRect(0, 0, canvas.width, canvas.height); 
-
-            ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)'; ctx.lineWidth = 1; ctx.beginPath();
             let step = state.scale * 5; 
             for (let x = state.cx % step; x < canvas.width; x += step) { ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); }
             for (let y = state.cy % step; y < canvas.height; y += step) { ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); }
             ctx.stroke();
 
             // Sumbu Utama
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'; ctx.lineWidth = 2;
             ctx.beginPath(); ctx.moveTo(0, state.cy); ctx.lineTo(canvas.width, state.cy); ctx.stroke();
         }
 
@@ -596,8 +576,8 @@
         // ========================================================
         
         function getFocalLength() {
-            if (state.mode === 'lensa_cembung' || state.mode === 'cermin_cekung') return state.f; // Konvergen
-            if (state.mode === 'lensa_cekung' || state.mode === 'cermin_cembung') return -state.f; // Divergen
+            if (state.mode === 'lensa_cembung' || state.mode === 'cermin_cekung') return state.f; 
+            if (state.mode === 'lensa_cekung' || state.mode === 'cermin_cembung') return -state.f; 
             return Infinity; 
         }
 
@@ -612,16 +592,10 @@
 
         // ------------------ STANDAR OPTIK ------------------
         function renderSingleOptic() {
-            let f = getFocalLength();
-            let s = state.s;
-            let h = state.h;
-            
+            let f = getFocalLength(); let s = state.s; let h = state.h;
             let { s_prime, m, h_prime } = calculateOptics(s, f, h);
-            
-            let x_obj = -s;
-            let x_img = isMirror() ? -s_prime : s_prime;
+            let x_obj = -s; let x_img = isMirror() ? -s_prime : s_prime;
 
-            // Update Math Panel
             let p_dioptri = (100 / f).toFixed(2);
             let isInfinity = !isFinite(s_prime);
             
@@ -642,7 +616,7 @@
                 x_img = s; h_prime = h;
             } else {
                 let isNyata = s_prime > 0;
-                let isTegak = m > 0;
+                let isTegak = (h > 0 && h_prime > 0) || (h < 0 && h_prime < 0);
                 let size = Math.abs(m) > 1.05 ? "Diperbesar" : (Math.abs(m) < 0.95 ? "Diperkecil" : "Sama Besar");
                 sifatStr = `Sifat: ${isNyata ? "Nyata" : "Maya"}, ${isTegak ? "Tegak" : "Terbalik"}, ${size}`;
             }
@@ -650,10 +624,9 @@
 
             drawGrid();
 
-            // Gambar Alat Optik (Hijau Neon)
+            // Gambar Alat Optik
             ctx.lineWidth = 4;
-            let colorOptic = '#39ff14'; // Neon Green
-            let colorOpticTranslucent = 'rgba(57, 255, 20, 0.6)';
+            let colorOptic = '#39ff14'; let colorOpticTranslucent = 'rgba(57, 255, 20, 0.6)';
 
             if (state.mode === 'cermin_datar') {
                 ctx.strokeStyle = colorOptic;
@@ -685,7 +658,7 @@
             drawObject(x_obj, h, h, '#e0e0ff', "Benda");
             if (!isInfinity) drawObject(x_img, h_prime, h_prime, '#ff007f', "Bayangan");
 
-            // ENGINE 3 SINAR ISTIMEWA (RAY TRACING)
+            // ENGINE 3 SINAR ISTIMEWA
             let cIn = '#00ffff', cOut = '#ffff00', cVirt = '#ff007f';
             
             if (isInfinity) {
@@ -760,7 +733,7 @@
 
             drawGrid();
             let originScale = state.scale, originCx = state.cx;
-            state.scale = state.baseScale * 0.58; // Proporsional (setara 3.5/6) berdasarkan baseScale
+            state.scale = state.baseScale * 0.58; 
             state.cx = canvas.width / 4; 
 
             let x_ob = 0, x_ok = d;
@@ -802,18 +775,15 @@
             let fok = isPanggung ? -state.f_ok_t : state.f_ok_t;
             let d = state.d_t;
 
-            // Benda di Tak Terhingga, s' Objektif tepat di fokus objektif
             let sob_prime = fob;
-            let sok = d - sob_prime; // Jarak bayangan 1 ke Okuler
-            let h_img1 = -15; // Visual Dummy Height
+            let sok = d - sob_prime; 
+            let h_img1 = -15; 
 
             let { s_prime: sok_prime, m: Mok, h_prime: hok_prime } = calculateOptics(sok, fok, h_img1);
 
             let isInfinity = !isFinite(sok_prime) || Math.abs(sok_prime) > 2000;
-            // Perbesaran Sudut M = f_ob / |s_ok| (pendekatan umum)
             let Mang = Math.abs(fob / sok);
 
-            // Update UI Panel
             document.getElementById('out_sob_prime_t').innerText = sob_prime.toFixed(2) + " cm";
             document.getElementById('out_s_ok_t').innerText = sok.toFixed(2) + " cm";
             document.getElementById('out_s_prime_t').innerText = isInfinity ? "∞ (Mata Tak Berakomodasi)" : sok_prime.toFixed(2) + " cm";
@@ -826,18 +796,16 @@
             drawGrid();
 
             let originScale = state.scale, originCx = state.cx;
-            state.scale = state.baseScale * 0.42; // Proporsional (setara 2.5/6) agar fokus yang besar muat di kanvas
+            state.scale = state.baseScale * 0.42; 
             state.cx = canvas.width / 2;
             
             let x_ob = -d/2;
             let x_ok = d/2;
 
-            // Draw Lensa Objektif (Selalu Cembung)
             drawOpticCenter("Objektif", x_ob); 
             ctx.beginPath(); ctx.ellipse(state.cx + x_ob*state.scale, state.cy, 12, 80, 0, 0, Math.PI*2); ctx.strokeStyle='rgba(57, 255, 20, 0.6)'; ctx.stroke();
             drawPoint(x_ob + fob, "F_ob");
 
-            // Draw Lensa Okuler (Cekung untuk Panggung, Cembung untuk Bintang)
             drawOpticCenter("Okuler", x_ok);
             if(isPanggung) {
                 let pxOk = state.cx + x_ok*state.scale, pyOk = state.cy;
@@ -856,45 +824,28 @@
                 drawObject(x_img2, hok_prime, hok_prime, '#ff007f', "Bayangan Akhir");
             }
 
-            // Ray Tracing Teleskop
             let cIn = '#00ffff', cOut = '#ffff00', cVirt = '#ff007f';
-            
-            // Sinar masuk dari benda di Tak Terhingga (Kita simulasikan asalnya sangat jauh di x_fake)
             let x_fake = x_ob - 150;
             let h_fake = h_img1 * (-150 / fob);
             
             if(state.showRay1) {
-                // Sinar 1: Melalui pusat optik Objektif
-                drawRay(x_fake, h_fake, x_ob, 0, cIn);
-                drawRay(x_ob, 0, x_img1, h_img1, cOut);
-
-                // Diteruskan ke Okuler: Sinar sejajar sumbu utama
+                drawRay(x_fake, h_fake, x_ob, 0, cIn); drawRay(x_ob, 0, x_img1, h_img1, cOut);
                 drawRay(x_img1, h_img1, x_ok, h_img1, cIn); 
-                let slope_ok_1 = -h_img1 / fok; // Berlaku universal untuk + maupun -
+                let slope_ok_1 = -h_img1 / fok; 
                 drawRay(x_ok, h_img1, x_ok + 100, h_img1 + 100*slope_ok_1, cOut);
                 
-                if(isInfinity) {
-                    drawRay(x_ok, h_img1, x_ok - 100, h_img1 - 100*slope_ok_1, cVirt, true);
-                } else if(sok_prime < 0) {
-                    drawRay(x_ok, h_img1, x_img2, hok_prime, cVirt, true);
-                }
+                if(isInfinity) drawRay(x_ok, h_img1, x_ok - 100, h_img1 - 100*slope_ok_1, cVirt, true);
+                else if(sok_prime < 0) drawRay(x_ok, h_img1, x_img2, hok_prime, cVirt, true);
             }
 
             if(state.showRay2) {
-                // Sinar 2: Sinar masuk sejajar yang menuju tepi lensa objektif
-                drawRay(x_fake, h_img1, x_ob, h_img1, cIn);
-                drawRay(x_ob, h_img1, x_img1, h_img1, cOut);
-
-                // Diteruskan ke Okuler: Sinar melalui pusat okuler
+                drawRay(x_fake, h_img1, x_ob, h_img1, cIn); drawRay(x_ob, h_img1, x_img1, h_img1, cOut);
                 drawRay(x_img1, h_img1, x_ok, 0, cIn);
-                let m_ok_2 = (0 - h_img1) / (x_ok - x_img1); // slope dari Bayangan 1 menuju Pusat
+                let m_ok_2 = (0 - h_img1) / (x_ok - x_img1);
                 drawRay(x_ok, 0, x_ok + 100, 100 * m_ok_2, cOut);
                 
-                if(isInfinity) {
-                    drawRay(x_ok, 0, x_ok - 100, -100 * m_ok_2, cVirt, true);
-                } else if(sok_prime < 0) {
-                    drawRay(x_ok, 0, x_img2, hok_prime, cVirt, true);
-                }
+                if(isInfinity) drawRay(x_ok, 0, x_ok - 100, -100 * m_ok_2, cVirt, true);
+                else if(sok_prime < 0) drawRay(x_ok, 0, x_img2, hok_prime, cVirt, true);
             }
 
             state.scale = originScale; state.cx = originCx;
@@ -937,7 +888,6 @@
                 document.getElementById('math_micro').style.display = 'none';
                 document.getElementById('math_telescope').style.display = 'block';
 
-                // Menyesuaikan posisi slider tubus ideal untuk jenis teropong agar bayangan terlihat rapi (Tak Akomodasi Default)
                 if(mode === 'teropong_panggung' && state.d_t >= state.f_ob_t) {
                     state.d_t = state.f_ob_t - state.f_ok_t;
                     if(state.d_t < 10) state.d_t = 10;
@@ -960,7 +910,6 @@
             }
         }
 
-        // Event Listeners Masing-Masing Slider
         sliders.s.addEventListener('input', e => { state.s = parseFloat(e.target.value); vals.s.innerText = state.s + " cm"; });
         sliders.h.addEventListener('input', e => { state.h = parseFloat(e.target.value); vals.h.innerText = state.h + " cm"; });
         sliders.f.addEventListener('input', e => { state.f = parseFloat(e.target.value); vals.f.innerText = state.f + " cm"; });
@@ -973,49 +922,85 @@
         sliders.fok_t.addEventListener('input', e => { state.f_ok_t = parseFloat(e.target.value); vals.fok_t.innerText = state.f_ok_t + " cm"; });
         sliders.dt.addEventListener('input', e => { state.d_t = parseFloat(e.target.value); vals.dt.innerText = state.d_t + " cm"; });
 
-        // Event Checkboxes Sinar Istimewa
         document.getElementById('chk_ray1').addEventListener('change', e => state.showRay1 = e.target.checked);
         document.getElementById('chk_ray2').addEventListener('change', e => state.showRay2 = e.target.checked);
         document.getElementById('chk_ray3').addEventListener('change', e => state.showRay3 = e.target.checked);
 
-        // Fitur Drag & Drop
-        canvas.addEventListener('mousedown', e => {
-            if(state.mode === 'mikroskop' || state.mode === 'teropong_bintang' || state.mode === 'teropong_panggung') return;
+        // ========================================================
+        // FITUR DRAG AND DROP (MOUSE & TOUCH/MOBILE)
+        // ========================================================
+        function getPointerPos(e) {
             const rect = canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left; const mouseY = e.clientY - rect.top;
-            let objPxX = state.cx - state.s * state.scale; let objPxY = state.cy - state.h * state.scale;
-            if (Math.abs(mouseX - objPxX) < 30 && Math.abs(mouseY - objPxY) < 40) state.isDragging = true;
-        });
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
 
-        canvas.addEventListener('mousemove', e => {
+        function startDrag(e) {
+            if(state.mode === 'mikroskop' || state.mode === 'teropong_bintang' || state.mode === 'teropong_panggung') return;
+            
+            const pos = getPointerPos(e);
+            let objPxX = state.cx - state.s * state.scale; 
+            let objPxY = state.cy - state.h * state.scale;
+            let basePxY = state.cy;
+            
+            // AREA SENTUH DIPERLEBAR: X margin 30px, Y sepanjang badan panah
+            let hitX = Math.abs(pos.x - objPxX) < 40;
+            let hitY = false;
+            
+            if (state.h > 0) {
+                hitY = pos.y >= objPxY - 20 && pos.y <= basePxY + 20;
+            } else {
+                hitY = pos.y <= objPxY + 20 && pos.y >= basePxY - 20;
+            }
+
+            if (hitX && hitY) {
+                state.isDragging = true;
+                if(e.cancelable) e.preventDefault(); // Cegah scrolling saat narik benda di HP
+            }
+        }
+
+        function handleDrag(e) {
             if (state.isDragging) {
-                const rect = canvas.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left; const mouseY = e.clientY - rect.top;
-                let newS = (state.cx - mouseX) / state.scale; let newH = (state.cy - mouseY) / state.scale;
+                if(e.cancelable) e.preventDefault(); // Cegah layar ikut ke-scroll
+
+                const pos = getPointerPos(e);
+                let newS = (state.cx - pos.x) / state.scale; 
+                let newH = (state.cy - pos.y) / state.scale;
                 
+                // Batas minimal-maksimal benda (Bisa bernilai minus agar benda terbalik)
                 if (newS < 1) newS = 1; if (newS > 100) newS = 100;
-                if (newH < 1) newH = 1; if (newH > 30) newH = 30;
+                if (newH < -30) newH = -30; if (newH > 30) newH = 30;
 
                 state.s = newS; state.h = newH;
                 sliders.s.value = newS; vals.s.innerText = newS.toFixed(1) + " cm";
                 sliders.h.value = newH; vals.h.innerText = newH.toFixed(1) + " cm";
             }
-        });
+        }
 
-        window.addEventListener('mouseup', () => { state.isDragging = false; });
-        canvas.addEventListener('mouseleave', () => { state.isDragging = false; });
+        function endDrag() {
+            state.isDragging = false;
+        }
 
-        // Init App pada Event Load
+        // Pendaftaran Event Mouse (PC/Desktop)
+        canvas.addEventListener('mousedown', startDrag);
+        canvas.addEventListener('mousemove', handleDrag);
+        window.addEventListener('mouseup', endDrag);
+        canvas.addEventListener('mouseleave', endDrag);
+
+        // Pendaftaran Event Touch (Layar HP/Mobile)
+        canvas.addEventListener('touchstart', startDrag, {passive: false});
+        canvas.addEventListener('touchmove', handleDrag, {passive: false});
+        window.addEventListener('touchend', endDrag);
+
+
+        // ========================================================
+        // INISIALISASI
+        // ========================================================
         window.addEventListener('load', () => {
-            setupSingleFilePWA(); // Eksekusi PWA script
-            
-            // Auto deteksi mode mobile saat dimuat pertama kali
-            if (window.innerWidth <= 768) {
-                toggleLayout();
-            } else {
-                resizeCanvas();
-            }
-
+            setupSingleFilePWA(); 
+            if (window.innerWidth <= 768) toggleLayout();
+            else resizeCanvas();
             setMode('lensa_cembung');
             requestAnimationFrame(gameLoop);
         });
